@@ -3,8 +3,6 @@ PKG_URL=https://github.com/littlevgl/lvgl
 PKG_VERSION=f6f5f691f73e433eb32f831c8356e602058267fb
 PKG_LICENSE=MIT
 
-include $(RIOTBASE)/pkg/pkg.mk
-
 TDIR = $(RIOTPKG)/$(PKG_NAME)
 PDIR = $(PKG_BUILDDIR)
 
@@ -38,3 +36,5 @@ lvgl_hal:
 
 lvgl_sdl:
 	"$(MAKE)" -C $(TDIR)/lv_sdl -f $(TDIR)/lvgl.sdl.mk
+
+include $(RIOTBASE)/pkg/pkg.mk
