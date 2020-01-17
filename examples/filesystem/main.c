@@ -265,7 +265,7 @@ static int _cat(int argc, char **argv)
     }
     close(fd);
 #endif
-    fflush(stdout);
+    putchar('\n');
     return 0;
 }
 
