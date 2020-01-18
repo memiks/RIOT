@@ -11,5 +11,9 @@ ifneq (,$(filter mtd,$(USEMODULE)))
   USEMODULE += mtd_spi_nor
 endif
 
+ifneq (,$(filter mtd,$(USEMODULE)))
+  USEMODULE += mtd_spi_nor
+endif
+
 # include common nrf52 dependencies
 include $(RIOTBOARD)/common/nrf52/Makefile.dep
