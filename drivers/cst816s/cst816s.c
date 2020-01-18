@@ -47,23 +47,38 @@ static void _cst816s_reset(cst816s_t *dev)
 
 int cst816s_read(cst816s_t *dev, cst816s_touch_data_t *data)
 {
-    uint8_t buf[9]; /* 3 bytes "header" and 6 bytes touch info */
+    uint8_t buf[64];
+    size_t num_points_found = 0;
 
     i2c_acquire(dev->params->i2c_dev);
+
     int res = i2c_read_regs(dev->params->i2c_dev, dev->params->i2c_addr,
                             0, buf, sizeof(buf), 0);
     i2c_release(dev->params->i2c_dev);
-
     if (res < 0) {
         return res;
     }
+    uint8_t points = buf[2] & 0x0f;
+    DEBUG("[cst816s] Number of points: %u\n", points);
+
+    size_t max_points_copy = points < num ? points : num;
+    for (size_t i = 0; i < max_points_copy; i++) {
+        uint8_t *point_buf = &buf[3 + 6 * i];
+        uint8_t point_id = point_buf[2] >> 4;
+        if (point_id > 0x0f) {
+            break;
+        }
+        num_points_found++;
 
     data->gesture = buf[1];
     data->action = buf[3] >> 6;
     data->x = (buf[3] & 0x0f) << 8 | buf[4];
     data->y = (buf[5] & 0x0f) << 8 | buf[6];
 
-    return 0;
+        data[i].action = point_buf[0] >> 6;
+    }
+
+    return num_points_found;
 }
 
 int cst816s_init(cst816s_t *dev, const cst816s_params_t *params,
