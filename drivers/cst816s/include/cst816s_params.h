@@ -6,15 +6,14 @@
  * directory for more details.
  */
 
+
 /**
  * @ingroup     drivers_cst816s
  *
- * @{
- * @file
- *
  * @brief       Default configuration for the CST816S touch screen driver
  *
- * @author      Koen Zandberg <koen@bergzand.net>
+ *
+ * @author      koen Zandberg <koen@bergzand.net>
  */
 
 #ifndef CST816S_PARAMS_H
@@ -63,7 +62,7 @@ extern "C" {
 /**@}*/
 
 /**
- * @brief   Configure CST816S
+ * @brief   Configure BMX280
  */
 static const cst816s_params_t cst816s_params[] =
 {
@@ -79,5 +78,6 @@ static const cst816s_params_t cst816s_params[] =
 }
 #endif
 
-#endif /* CST816S_PARAMS_H */
+#endif /* BMX280_PARAMS_H */
 /** @} */
+
