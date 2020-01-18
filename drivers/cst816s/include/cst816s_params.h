@@ -51,7 +51,6 @@ extern "C" {
 #define CST816S_PARAM_RESET          GPIO_PIN(0, 10)
 #endif
 
-
 #define CST816S_PARAMS                      \
     {                                       \
         .i2c_dev   = CST816S_PARAM_I2C_DEV,  \
