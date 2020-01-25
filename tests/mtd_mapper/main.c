@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Koen Zandberg <koen@bergzand.net>
+ * Copyright (C) 2020  Koen Zandberg
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -42,8 +42,6 @@
 
 #define REGION_FLASH_SIZE    MEMORY_SIZE / 2
 
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
 static uint8_t _dummy_memory[MEMORY_SIZE];
 
 static uint8_t _buffer[PAGE_SIZE];
@@ -64,25 +62,6 @@ static int _read(mtd_dev_t *dev, void *buff, uint32_t addr, uint32_t size)
     }
     memcpy(buff, _dummy_memory + addr, size);
 
-    return 0;
-}
-
-static int _read_page(mtd_dev_t *dev, void *buff, uint32_t page, uint32_t offset, uint32_t size)
-{
-    uint32_t addr = page * dev->page_size + offset;
-
-    if (page >= dev->sector_count * dev->pages_per_sector) {
-        return -EOVERFLOW;
-    }
-
-    if (offset > dev->page_size) {
-        return -EOVERFLOW;
-    }
-
-    size = MIN(dev->page_size - offset, size);
-
-    memcpy(buff, _dummy_memory + addr, size);
-
     return size;
 }
 
@@ -97,25 +76,6 @@ static int _write(mtd_dev_t *dev, const void *buff, uint32_t addr,
     if (size > PAGE_SIZE) {
         return -EOVERFLOW;
     }
-    memcpy(_dummy_memory + addr, buff, size);
-
-    return 0;
-}
-
-static int _write_page(mtd_dev_t *dev, const void *buff, uint32_t page, uint32_t offset, uint32_t size)
-{
-    uint32_t addr = page * dev->page_size + offset;
-
-    if (page >= dev->sector_count * dev->pages_per_sector) {
-        return -EOVERFLOW;
-    }
-
-    if (offset > dev->page_size) {
-        return -EOVERFLOW;
-    }
-
-    size = MIN(dev->page_size - offset, size);
-
     memcpy(_dummy_memory + addr, buff, size);
 
     return size;
@@ -139,20 +99,6 @@ static int _erase(mtd_dev_t *dev, uint32_t addr, uint32_t size)
     return 0;
 }
 
-static int _erase_sector(mtd_dev_t *dev, uint32_t sector, uint32_t count)
-{
-    uint32_t addr = sector * dev->page_size * dev->pages_per_sector;
-
-    if (sector + count > dev->sector_count) {
-        return -EOVERFLOW;
-    }
-
-    memset(_dummy_memory + addr, 0xff,
-           count * dev->page_size * dev->pages_per_sector);
-
-    return 0;
-}
-
 static int _power(mtd_dev_t *dev, enum mtd_power_state power)
 {
     (void)dev;
@@ -166,9 +112,6 @@ static const mtd_desc_t driver = {
     .write = _write,
     .erase = _erase,
     .power = _power,
-    .read_page    = _read_page,
-    .write_page   = _write_page,
-    .erase_sector = _erase_sector,
 };
 
 static mtd_dev_t dev = {
@@ -188,7 +131,7 @@ static mtd_mapper_region_t _region_a = {
         .page_size = PAGE_SIZE,
     },
     .parent = &_parent,
-    .sector = 0,
+    .offset = 0,
 };
 
 static mtd_mapper_region_t _region_b = {
@@ -199,7 +142,7 @@ static mtd_mapper_region_t _region_b = {
         .page_size = PAGE_SIZE,
     },
     .parent = &_parent,
-    .sector = SECTOR_COUNT / 2,
+    .offset = PAGE_PER_SECTOR * PAGE_SIZE * SECTOR_COUNT / 2,
 };
 
 static mtd_dev_t *_dev_a = &_region_a.mtd;

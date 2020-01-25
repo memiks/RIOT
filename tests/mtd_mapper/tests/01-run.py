@@ -7,8 +7,12 @@
 # directory for more details.
 
 import sys
-from testrunner import run_check_unittests
+from testrunner import run
+
+
+def testfunc(child):
+    child.expect(r'OK \(\d+ tests\)')
 
 
 if __name__ == "__main__":
-    sys.exit(run_check_unittests())
+    sys.exit(run(testfunc))
