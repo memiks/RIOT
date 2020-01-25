@@ -8,7 +8,10 @@
 
 /**
  * @defgroup    drivers_mtd_mapper  MTD addres mapper
+ * @ingroup     drivers_storage
+ * @brief       Driver for address remap for flash devices
  *
+ * This MTD module allows for remapping multiple different regions on a single
  * MTD device and present them as separate MTD devices. This is similar to
  * partitions on a hard drive, although this system only allows hardcoded
  * partitions and lacks a partition table.
