@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Koen Zandberg <koen@bergzand.net>
+ * Copyright (C) 2020  Koen Zandberg
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -7,11 +7,8 @@
  */
 
 /**
- * @defgroup    drivers_mtd_mapper  MTD address mapper
- * @ingroup     drivers_storage
- * @brief       Driver for address remap for flash devices
+ * @defgroup    drivers_mtd_mapper  MTD addres mapper
  *
- * This MTD module allows for remapping multiple different regions on a single
  * MTD device and present them as separate MTD devices. This is similar to
  * partitions on a hard drive, although this system only allows hardcoded
  * partitions and lacks a partition table.
@@ -41,15 +38,13 @@
  *         .page_size = PAGE_SIZE,
  *     },
  *     .parent = &parent,
- *     .sector = SECTOR_COUNT / 2
+ *     .offset = PAGE_PER_SECTOR * PAGE_SIZE * SECTOR_COUNT / 2
  * };
  *
  * mtd_dev_t *dev = &region.mtd;
  * ```
  * The snippet here defines a region within an existing `MTD_0` device of half
  * the size of `MTD_0` and starting in the middle of the device.
- *
- * @warning Please ensure that the different configured regions do not overlap.
  *
  * @{
  *
@@ -96,12 +91,9 @@ typedef struct {
 typedef struct {
     mtd_dev_t mtd;                  /**< MTD context                         */
     mtd_mapper_parent_t *parent;    /**< MTD mapper parent device            */
-    uint32_t sector;                /**< first sector of the region */
+    uint32_t offset;                /**< Offset address to start this region */
 } mtd_mapper_region_t;
 
-/**
- * @brief Mapper MTD device operations table
- */
 extern const mtd_desc_t mtd_mapper_driver;
 
 #ifdef __cplusplus
