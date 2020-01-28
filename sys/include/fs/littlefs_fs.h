@@ -97,7 +97,7 @@ typedef struct {
     uint8_t prog_buf[LITTLEFS_PROG_BUFFER_SIZE];
 #endif
     /** lookahead buffer to use internally */
-    uint8_t lookahead_buf[LITTLEFS_LOOKAHEAD_SIZE / 8];
+    uint8_t lookahead_buf[LITTLEFS_LOOKAHEAD_SIZE];
 } littlefs_desc_t;
 
 /** The littlefs vfs driver */
