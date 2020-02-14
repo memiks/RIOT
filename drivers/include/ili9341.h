@@ -189,7 +189,7 @@ void ili9341_invert_off(const ili9341_t *dev);
  * @param[in]   dev         device descriptor
  * @param[in]   brightness  brightness value to set
  */
-void ili9341_set_brightness(ili9341_t *dev, uint8_t brightness);
+void ili9341_set_brightness(const ili9341_t *dev, uint8_t brightness);
 
 /**
  * @brief   Set display on or off
