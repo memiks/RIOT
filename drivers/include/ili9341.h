@@ -218,14 +218,6 @@ void ili9341_set_brightness(const ili9341_t *dev, uint8_t brightness);
  */
 void ili9341_sleep_mode(ili9341_t *dev, bool enable);
 
-/**
- * @brief   Set display on or off
- *
- * @param[in]   dev         device descriptor
- * @param[in]   enable      whether to enable the sleep mode
- */
-void ili9341_sleep_mode(ili9341_t *dev, bool enable);
-
 #ifdef __cplusplus
 }
 #endif
