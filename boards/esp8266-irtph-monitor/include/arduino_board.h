@@ -27,7 +27,7 @@ extern "C" {
 /**
  * @brief   The on-board LED is connected to GPIO1 (Arduino pin 0) on this board
  */
-#define ARDUINO_LED     (0)
+#define ARDUINO_LED     (13)
 
 /**
  * @brief   Look-up table for the Arduino's digital pins
