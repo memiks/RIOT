@@ -201,6 +201,7 @@ int ili9341_init(ili9341_t *dev, const ili9341_params_t *params)
     if (dev->params->inverted) {
         _write_cmd(dev, ILI9341_CMD_DINVON, NULL, 0);
     }
+
     /* Sleep out (turn off sleep mode) */
     _write_cmd(dev, ILI9341_CMD_SLPOUT, NULL, 0);
     /* Display on */
@@ -327,4 +328,22 @@ void ili9341_sleep_mode(ili9341_t *dev, bool enable)
         ili9341_write_cmd(dev, ILI9341_CMD_SLPOUT, NULL, 0);
         xtimer_usleep(5 * US_PER_MS);
     }
+}
+
+void ili9341_set_fixed_scroll_area(const ili9341_t *dev, uint16_t top,
+                                   uint16_t bottom)
+{
+    assert((top + bottom) < 320);
+    uint16_t mid = 320 - top - bottom;
+
+    uint16_t data[3] = {htons(top), htons(mid), htons(bottom)};
+
+    ili9341_write_cmd(dev, ILI9341_CMD_VSCRDEF, (uint8_t*)&data, sizeof(data));
+}
+
+void ili9341_set_scroll_start(const ili9341_t *dev, uint16_t vsp)
+{
+    assert(vsp < 320);
+    uint16_t _vsp = htons(vsp);
+    ili9341_write_cmd(dev, ILI9341_CMD_VSCSAD, (uint8_t*)&_vsp, sizeof(_vsp));
 }
