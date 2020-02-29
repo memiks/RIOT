@@ -149,55 +149,6 @@ int ili9341_init(ili9341_t *dev, const ili9341_params_t *params)
     command_params[0] = 0x55; /* 16 bit mode */
     _write_cmd(dev, ILI9341_CMD_PIXSET, command_params, 1);
 
-
-    command_params[0] = 0x01;
-    _write_cmd(dev, ILI9341_CMD_GAMSET, command_params, 1);
-
-    /* Gamma correction */
-    {
-        static const uint8_t gamma_pos[] = {
-            0x0F,
-            0x31,
-            0x2B,
-            0x0C,
-            0x0E,
-            0x08,
-            0x4E,
-            0xF1,
-            0x37,
-            0x07,
-            0x10,
-            0x03,
-            0x0E,
-            0x09,
-            0x00
-        };
-        _write_cmd(dev, ILI9341_CMD_PGAMCTRL, gamma_pos,
-                   sizeof(gamma_pos));
-    }
-    {
-        static const uint8_t gamma_neg[] = {
-            0x00,
-            0x0E,
-            0x14,
-            0x03,
-            0x11,
-            0x07,
-            0x31,
-            0xC1,
-            0x48,
-            0x08,
-            0x0F,
-            0x0C,
-            0x31,
-            0x36,
-            0x0F
-        };
-        _write_cmd(dev, ILI9341_CMD_NGAMCTRL, gamma_neg,
-                   sizeof(gamma_neg));
-
-    }
-
     if (dev->params->inverted) {
         _write_cmd(dev, ILI9341_CMD_DINVON, NULL, 0);
     }
