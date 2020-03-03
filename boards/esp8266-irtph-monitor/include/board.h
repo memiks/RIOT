@@ -28,8 +28,8 @@
  * @name    On-board LED configuration and control definitions
  * @{
  */
-#define LED0_PIN    GPIO1   /**< GPIO1 is used as LED Pin */
-#define LED0_ACTIVE (0)     /**< LED is low active */
+#define LED0_PIN    GPIO13   /**< GPIO1 is used as LED Pin */
+#define LED0_ACTIVE (1)     /**< LED is high active */
 
 /** @} */
 
