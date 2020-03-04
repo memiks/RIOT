@@ -56,15 +56,15 @@ extern "C" {
  * @name LCD configuration
  * @{
  */
-#define ILI9341_PARAM_SPI          SPI_DEV(0)
-#define ILI9341_PARAM_SPI_CLK      SPI_CLK_10MHZ
-#define ILI9341_PARAM_SPI_MODE     SPI_MODE_3
-#define ILI9341_PARAM_CS           LCD_CS
-#define ILI9341_PARAM_DCX          LCD_RS
-#define ILI9341_PARAM_RST          LCD_RESET
-#define ILI9341_PARAM_RGB          1
-#define ILI9341_PARAM_INVERTED     1
-#define ILI9341_PARAM_NUM_LINES    240U
+#define ST7789_PARAM_SPI          SPI_DEV(0)
+#define ST7789_PARAM_SPI_CLK      SPI_CLK_10MHZ
+#define ST7789_PARAM_SPI_MODE     SPI_MODE_3
+#define ST7789_PARAM_CS           LCD_CS
+#define ST7789_PARAM_DCX          LCD_RS
+#define ST7789_PARAM_RST          LCD_RESET
+#define ST7789_PARAM_RGB          1
+#define ST7789_PARAM_INVERTED     0
+#define ST7789_PARAM_NUM_LINES    240U
 /** @} */
 
 /**

@@ -32,7 +32,6 @@
 static void _gpio_irq(void *arg)
 {
     cst816s_t *dev = arg;
-
     dev->cb(dev, dev->cb_arg);
 }
 
