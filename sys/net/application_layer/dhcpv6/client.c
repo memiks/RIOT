@@ -155,6 +155,7 @@ void dhcpv6_client_req_ia_pd(unsigned netif, unsigned pfx_len)
             lease->parent.ia_id.info.netif = netif;
             lease->parent.ia_id.info.type = DHCPV6_OPT_IA_PD;
             lease->pfx_len = pfx_len;
+            break;
         }
     }
 }
@@ -368,6 +369,15 @@ static bool _check_sid_opt(dhcpv6_opt_duid_t *sid)
             (memcmp(sid->duid, server.duid.u8, server.duid_len) == 0));
 }
 
+/* discard stale messages in the receive buffer */
+static void _flush_stale_replies(sock_udp_t *sock)
+{
+    int res;
+    while ((res = sock_udp_recv(sock, recv_buf, sizeof(recv_buf), 0, NULL)) >= 0) {
+        DEBUG("DHCPv6 client: discarding %d stale bytes\n", res);
+    }
+}
+
 static int _preparse_advertise(uint8_t *adv, size_t len, uint8_t **buf)
 {
     dhcpv6_opt_duid_t *cid = NULL, *sid = NULL;
@@ -382,6 +392,7 @@ static int _preparse_advertise(uint8_t *adv, size_t len, uint8_t **buf)
         DEBUG("DHCPv6 client: packet too small or transaction ID wrong\n");
         return -1;
     }
+    len -= sizeof(dhcpv6_msg_t);
     for (dhcpv6_opt_t *opt = (dhcpv6_opt_t *)(&adv[sizeof(dhcpv6_msg_t)]);
          len > 0; len -= _opt_len(opt), opt = _opt_next(opt)) {
         if (len > orig_len) {
@@ -482,7 +493,8 @@ static void _parse_advertise(uint8_t *adv, size_t len)
                     dhcpv6_opt_ia_pd_t *ia_pd = (dhcpv6_opt_ia_pd_t *)opt;
                     unsigned pd_t1, pd_t2;
                     uint32_t ia_id = byteorder_ntohl(ia_pd->ia_id);
-                    size_t ia_pd_len = byteorder_ntohs(ia_pd->len);
+                    size_t ia_pd_len = byteorder_ntohs(ia_pd->len) -
+                                       (sizeof(dhcpv6_opt_ia_pd_t) - sizeof(dhcpv6_opt_t));
                     size_t ia_pd_orig_len = ia_pd_len;
 
                     if (pfx_leases[i].parent.ia_id.id != ia_id) {
@@ -585,7 +597,7 @@ static bool _parse_reply(uint8_t *rep, size_t len)
     if (!_check_status_opt(status)) {
         return false;
     }
-    len = orig_len;
+    len = orig_len - sizeof(dhcpv6_msg_t);
     for (dhcpv6_opt_t *opt = (dhcpv6_opt_t *)(&rep[sizeof(dhcpv6_msg_t)]);
          len > 0; len -= _opt_len(opt), opt = _opt_next(opt)) {
         switch (byteorder_ntohs(opt->type)) {
@@ -596,7 +608,8 @@ static bool _parse_reply(uint8_t *rep, size_t len)
                     ia_pd = (dhcpv6_opt_ia_pd_t *)opt;
                     unsigned pd_t1, pd_t2;
                     uint32_t ia_id = byteorder_ntohl(ia_pd->ia_id);
-                    size_t ia_pd_len = byteorder_ntohs(ia_pd->len);
+                    size_t ia_pd_len = byteorder_ntohs(ia_pd->len) -
+                                       (sizeof(dhcpv6_opt_ia_pd_t) - sizeof(dhcpv6_opt_t));
                     size_t ia_pd_orig_len = ia_pd_len;
 
                     if (lease->parent.ia_id.id != ia_id) {
@@ -659,7 +672,6 @@ static bool _parse_reply(uint8_t *rep, size_t len)
                                     lease->pfx_len, valid, pref
                                 );
                         }
-                        return true;
                     }
                 }
                 break;
@@ -693,6 +705,7 @@ static void _solicit_servers(event_t *event)
                                 ARRAY_SIZE(oro_opts));
     msg_len += _add_ia_pd_from_config(&send_buf[msg_len]);
     DEBUG("DHCPv6 client: send SOLICIT\n");
+    _flush_stale_replies(&sock);
     res = sock_udp_send(&sock, send_buf, msg_len, &remote);
     assert(res > 0);    /* something went terribly wrong */
     while (((res = sock_udp_recv(&sock, recv_buf, sizeof(recv_buf),
@@ -799,6 +812,7 @@ static void _request_renew_rebind(uint8_t type)
     msg_len += _compose_oro_opt((dhcpv6_opt_oro_t *)&send_buf[msg_len], oro_opts,
                                 ARRAY_SIZE(oro_opts));
     msg_len += _add_ia_pd_from_config(&send_buf[msg_len]);
+    _flush_stale_replies(&sock);
     while (sock_udp_send(&sock, send_buf, msg_len, &remote) <= 0) {}
     while (((res = sock_udp_recv(&sock, recv_buf, sizeof(recv_buf),
                                  retrans_timeout, NULL)) <= 0) ||

@@ -7,12 +7,15 @@ BOARD_INSUFFICIENT_MEMORY := \
     arduino-uno \
     atmega1284p \
     atmega328p \
+    blackpill \
+    bluepill \
     calliope-mini \
     chronos \
     derfmega128 \
     hifive1 \
     hifive1b \
     i-nucleo-lrwan1 \
+    im880b \
     mega-xplained \
     microbit \
     microduino-corerf \

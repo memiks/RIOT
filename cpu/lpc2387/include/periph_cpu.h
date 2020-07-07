@@ -36,7 +36,7 @@ extern "C" {
  * @name    Power mode configuration
  * @{
  */
-#define PM_NUM_MODES        (4)
+#define PM_NUM_MODES        (3)
 /** @} */
 
 /**
@@ -126,7 +126,7 @@ typedef struct {
 /**
  * @brief   Number of available timer channels
  */
-#define TIMER_CHAN_NUMOF        (4U)
+#define TIMER_CHANNEL_NUMOF (4U)
 
 /**
  * @brief   Declare needed generic SPI functions
@@ -166,6 +166,7 @@ typedef enum {
  */
 #define DAC_NUMOF           (1U)
 
+#ifndef DOXYGEN
 /**
  * @brief   Possible ADC resolution settings
  * @{
@@ -185,6 +186,7 @@ typedef enum {
     ADC_RES_3BIT  = 0b111,  /**< ADC resolution:  3 bit */
 } adc_res_t;
 /** @} */
+#endif /* ndef DOXYGEN */
 
 /**
  * @brief   ADC device configuration
@@ -195,6 +197,7 @@ typedef struct {
     uint32_t pinsel_msk;    /**< PINSEL Mask for ADC pin */
 } adc_conf_t;
 
+#ifndef DOXYGEN
 /**
  * @brief   Override I2C clock speed values
  * @{
@@ -206,6 +209,7 @@ typedef enum {
     I2C_SPEED_FAST   = 400000,  /**< fast mode:      ~400 kbit/s */
 } i2c_speed_t;
 /* @} */
+#endif /* ndef DOXYGEN */
 
 /**
  * @brief   I2C device configuration
@@ -228,6 +232,16 @@ typedef struct {
 #define PERIPH_I2C_NEED_READ_REG
 #define PERIPH_I2C_NEED_WRITE_REG
 /** @} */
+
+/**
+ * Enable yday and wday calculation in rtc_normalize().
+ * Those fields are used by the RTC.
+ * @{
+ */
+#if defined(MODULE_PERIPH_RTC) && !defined(RTC_NORMALIZE_COMPAT)
+#define RTC_NORMALIZE_COMPAT    (1)
+#endif
+/* @} */
 
 #ifdef __cplusplus
 }

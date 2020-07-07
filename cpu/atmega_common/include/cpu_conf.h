@@ -48,7 +48,9 @@ extern "C" {
 /* keep THREAD_STACKSIZE_IDLE > THREAD_EXTRA_STACKSIZE_PRINTF
  * to avoid not printing of debug in interrupts
  */
+#ifndef THREAD_STACKSIZE_IDLE
 #define THREAD_STACKSIZE_IDLE      (128)
+#endif
 /** @} */
 
 /**
@@ -60,6 +62,11 @@ extern "C" {
  * @brief   Declare the heap_stats function as available
  */
 #define HAVE_HEAP_STATS
+
+/**
+ * @brief   This arch uses the inlined IRQ API.
+ */
+#define IRQ_API_INLINED     (1)
 
 #ifdef __cplusplus
 }

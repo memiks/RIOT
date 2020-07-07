@@ -221,9 +221,7 @@ uint32_t sx127x_random(sx127x_t *dev)
  */
 void sx127x_isr(netdev_t *dev)
 {
-    if (dev->event_callback) {
-        dev->event_callback(dev, NETDEV_EVENT_ISR);
-    }
+    netdev_trigger_event_isr(dev);
 }
 
 static void sx127x_on_dio_isr(sx127x_t *dev, sx127x_flags_t flag)
@@ -290,6 +288,10 @@ static int _init_gpios(sx127x_t *dev)
             DEBUG("[sx127x] error: failed to initialize DIO2 pin\n");
             return res;
         }
+    }
+    else {
+        /* if frequency hopping is enabled, DIO2 pin must be defined */
+        assert(LORA_FREQUENCY_HOPPING_DEFAULT == false);
     }
 
     /* check if DIO3 pin is defined */

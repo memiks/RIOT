@@ -10,6 +10,9 @@ endif
 ifneq (,$(filter posix_inet,$(USEMODULE)))
   DIRS += posix/inet
 endif
+ifneq (,$(filter posix_select,$(USEMODULE)))
+  DIRS += posix/select
+endif
 ifneq (,$(filter posix_semaphore,$(USEMODULE)))
   DIRS += posix/semaphore
 endif
@@ -30,6 +33,9 @@ ifneq (,$(filter shell_commands,$(USEMODULE)))
 endif
 ifneq (,$(filter test_utils_interactive_sync,$(USEMODULE)))
   DIRS += test_utils/interactive_sync
+endif
+ifneq (,$(filter dummy_thread,$(USEMODULE)))
+  DIRS += test_utils/dummy_thread
 endif
 ifneq (,$(filter net_help,$(USEMODULE)))
   DIRS += net/crosslayer/net_help
@@ -76,8 +82,8 @@ endif
 ifneq (,$(filter log_%,$(USEMODULE)))
   DIRS += log
 endif
-ifneq (,$(filter xtimer,$(USEMODULE)))
-  DIRS += xtimer
+ifneq (,$(filter ztimer_xtimer_compat,$(USEMODULE)))
+  FILTER += xtimer
 endif
 ifneq (,$(filter cpp11-compat,$(USEMODULE)))
   DIRS += cpp11-compat
@@ -163,7 +169,10 @@ endif
 ifneq (,$(filter netif,$(USEMODULE)))
     DIRS += net/netif
 endif
+ifneq (,$(filter ztimer_core,$(USEMODULE)))
+    DIRS += ztimer
+endif
 
-DIRS += $(dir $(wildcard $(addsuffix /Makefile, $(USEMODULE))))
+DIRS += $(dir $(wildcard $(addsuffix /Makefile, $(filter-out $(FILTER), $(USEMODULE)))))
 
 include $(RIOTBASE)/Makefile.base

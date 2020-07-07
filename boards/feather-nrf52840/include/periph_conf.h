@@ -39,8 +39,10 @@ static const uart_conf_t uart_config[] = {
         .dev        = NRF_UARTE0,
         .rx_pin     = GPIO_PIN(0,24),
         .tx_pin     = GPIO_PIN(0,25),
+#ifdef MODULE_PERIPH_UART_HW_FC
         .rts_pin    = GPIO_UNDEF,
         .cts_pin    = GPIO_UNDEF,
+#endif
         .irqn       = UARTE0_UART0_IRQn,
     },
 };
@@ -56,10 +58,10 @@ static const uart_conf_t uart_config[] = {
  */
 static const spi_conf_t spi_config[] = {
     {
-        .dev  = NRF_SPI0,
+        .dev  = NRF_SPIM0,
         .sclk = 14,
         .mosi = 13,
-        .miso = 15
+        .miso = 15,
     }
 };
 
