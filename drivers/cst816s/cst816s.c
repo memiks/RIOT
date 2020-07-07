@@ -115,6 +115,29 @@ int cst816s_read(cst816s_t *dev, cst816s_touch_data_t *data, size_t num)
     return num_points_found;
 }
 
+/*
+int cst816s_bosmoment_read(cst816s_t *dev, cst816s_touch_data_t *data)
+{
+    uint8_t buf[9]; // 3 bytes "header" and 6 bytes touch info 
+
+    i2c_acquire(dev->params->i2c_dev);
+    int res = i2c_read_regs(dev->params->i2c_dev, dev->params->i2c_addr,
+                            0, buf, sizeof(buf), 0);
+    i2c_release(dev->params->i2c_dev);
+
+    if (res < 0) {
+        return res;
+    }
+
+    data->gesture = buf[1];
+    data->action = buf[3] >> 6;
+    data->x = (buf[3] & 0x0f) << 8 | buf[4];
+    data->y = (buf[5] & 0x0f) << 8 | buf[6];
+
+    return 0;
+}
+*/
+
 int cst816s_init(cst816s_t *dev, const cst816s_params_t *params,
                  cst816s_irq_cb_t cb, void *arg)
 {
@@ -127,7 +150,8 @@ int cst816s_init(cst816s_t *dev, const cst816s_params_t *params,
     _cst816s_reset(dev);
 
     if (cb) {
-        int res = gpio_init_int(dev->params->irq, GPIO_IN, dev->params->irq_flank,
+        int res = gpio_init_int(dev->params->irq, GPIO_IN,
+                                dev->params->irq_flank,
                                 _gpio_irq, dev);
         if (res < 0) {
             return CST816S_ERR_IRQ;
