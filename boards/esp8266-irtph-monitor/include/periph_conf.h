@@ -32,10 +32,10 @@
 #define I2C0_SPEED      I2C_SPEED_FAST  /**< I2C bus speed of I2C_DEV(0) */
 #endif
 #ifndef I2C0_SDA
-#define I2C0_SDA        GPIO4           /**< SDA signal of I2C_DEV(0) */
+#define I2C0_SDA        GPIO0           /**< SDA signal of I2C_DEV(0) */
 #endif
 #ifndef I2C0_SCL
-#define I2C0_SCL        GPIO5           /**< SCL signal of I2C_DEV(0) */
+#define I2C0_SCL        GPIO1           /**< SCL signal of I2C_DEV(0) */
 #endif
 /** @} */
 
