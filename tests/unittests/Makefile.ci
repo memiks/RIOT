@@ -20,9 +20,9 @@ BOARD_INSUFFICIENT_MEMORY := \
     calliope-mini \
     cc2650-launchpad \
     cc2650stk \
-    chronos \
     derfmega128 \
     derfmega256 \
+    e104-bt5010a-tb \
     ek-lm4f120xl \
     esp8266-esp-12x \
     esp8266-olimex-mod \
@@ -33,6 +33,7 @@ BOARD_INSUFFICIENT_MEMORY := \
     hifive1b \
     i-nucleo-lrwan1 \
     ikea-tradfri \
+    im880b \
     limifrog-v1 \
     lobaro-lorabox \
     lsn50 \
@@ -56,13 +57,19 @@ BOARD_INSUFFICIENT_MEMORY := \
     nucleo-f303k8 \
     nucleo-f334r8 \
     nucleo-f410rb \
+    nucleo-g070rb \
+    nucleo-g071rb \
+    nucleo-g431rb \
     nucleo-l031k6 \
     nucleo-l053r8 \
     nucleo-l073rz \
+    nucleo-l412kb \
     nucleo-l432kc \
     nucleo-l433rc \
     nz32-sc151 \
+    olimexino-stm32 \
     opencm904 \
+    openlabs-kw41z-mini-256kib \
     pba-d-01-kw2x \
     samd21-xpro \
     saml10-xpro \
@@ -80,7 +87,9 @@ BOARD_INSUFFICIENT_MEMORY := \
     sodaq-explorer \
     sodaq-one \
     sodaq-sara-aff \
+    sodaq-sara-sff \
     spark-core \
+    stk3200 \
     stk3600 \
     stm32f030f4-demo \
     stm32f0discovery \
@@ -89,8 +98,7 @@ BOARD_INSUFFICIENT_MEMORY := \
     teensy31 \
     telosb \
     waspmote-pro \
-    wsn430-v1_3b \
-    wsn430-v1_4 \
+    yarm \
     yunjia-nrf51822 \
     z1 \
     #

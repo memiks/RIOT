@@ -23,6 +23,7 @@
 
 #include "cpu.h"
 #include "periph/gpio.h"
+#include "cc2538_eui_primary.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -74,6 +75,16 @@
 #define RF24_SWITCH_AT86RF215_ON     (RF_SWITCH_PORT->DATA &= ~RF24_SWITCH_AT86RF215_MASK)
 #define RF24_SWITCH_AT86RF215_OFF    (RF_SWITCH_PORT->DATA |=  RF24_SWITCH_AT86RF215_MASK)
 #define RF24_SWITCH_AT86RF215_TOGGLE (RF_SWITCH_PORT->DATA ^=  RF24_SWITCH_AT86RF215_MASK)
+/** @} */
+
+/**
+ * @name    AT86RF215 configuration
+ * @{
+ */
+#define AT86RF215_PARAM_SPI        SPI_DEV(0)
+#define AT86RF215_PARAM_CS         GPIO_PIN(0, 3) /* A3 */
+#define AT86RF215_PARAM_INT        GPIO_PIN(3, 0) /* D0 */
+#define AT86RF215_PARAM_RESET      GPIO_PIN(3, 1) /* D1 */
 /** @} */
 
 /**

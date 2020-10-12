@@ -7,6 +7,7 @@ USEMODULE += gnrc_netdev_default
 USEMODULE += auto_init_gnrc_netif
 USEMODULE += gnrc_lorawan
 USEMODULE += gnrc_pktdump
+USEMODULE += gnrc_neterr
 
 BOARD ?= b-l072z-lrwan1
 RIOTBASE ?= ../../
@@ -19,13 +20,12 @@ DRIVER ?= sx1276
 
 USEMODULE += $(DRIVER)
 
-# Required for the cipher module */
-CFLAGS += -DCRYPTO_AES
-#
 # We can reduce the size of the packet buffer for LoRaWAN, since there's no IP
 # support. This will reduce RAM consumption.
-CFLAGS += -DGNRC_PKTBUF_SIZE=512
-
+# Set GNRC_PKTBUF_SIZE via CFLAGS if not being set via Kconfig.
+ifndef CONFIG_GNRC_PKTBUF_SIZE
+  CFLAGS += -DCONFIG_GNRC_PKTBUF_SIZE=512
+endif
 
 ########################### COMPILE TIME CONFIGURATION ########################
 # NOTE: The following options can be configured on runtime as well using

@@ -16,7 +16,9 @@ else
 endif
 USEMODULE += auto_init_gnrc_netif
 USEMODULE += gnrc_ipv6_default
-USEMODULE += gnrc_sock_udp
+USEMODULE += sock_udp
+USEMODULE += gnrc_netif_single          # Only one interface used and it makes
+                                        # shell commands easier
 USEMODULE += emcute
 USEMODULE += od
 USEMODULE += shell
@@ -33,6 +35,6 @@ TEST_ON_CI_BLACKLIST += all
 .PHONY: ethos
 
 ethos:
-	$(Q)env -u CC -u CFLAGS make -C $(RIOTTOOLS)/ethos
+	$(Q)env -u CC -u CFLAGS $(MAKE) -C $(RIOTTOOLS)/ethos
 
 include $(RIOTBASE)/Makefile.include

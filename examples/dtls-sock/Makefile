@@ -16,10 +16,16 @@ USEMODULE += gnrc_netdev_default
 USEMODULE += auto_init_gnrc_netif
 # Specify the mandatory networking modules for IPv6 and UDP
 USEMODULE += gnrc_ipv6_default
-USEMODULE += gnrc_sock_udp
 
-# Use tinydtls for sock_dtls
-USEMODULE += tinydtls_sock_dtls
+# Specify DTLS implementation
+USEPKG += tinydtls
+
+# Pull in sock APIs
+USEMODULE += sock_dtls
+USEMODULE += sock_udp
+
+# tinydtls needs crypto secure PRNG
+USEMODULE += prng_sha1prng
 
 # Add also the shell, some shell commands
 USEMODULE += shell
@@ -29,14 +35,15 @@ USEMODULE += shell_commands
 DTLS_PORT ?= 20220
 CFLAGS += -DDTLS_DEFAULT_PORT=$(DTLS_PORT)
 
-# NOTE: If no cipher suite is selected, DTLS_PSK is used by default.
+# NOTE: If no cipher suite is selected, CONFIG_DTLS_PSK is used by default.
+# This section should be commented out if using Kconfig
 # This adds support for TLS_PSK_WITH_AES_128_CCM_8
-CFLAGS += -DDTLS_PSK
+# CFLAGS += -DCONFIG_DTLS_PSK
 # This adds support for TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
-# CFLAGS += -DDTLS_ECC
+# CFLAGS += -DCONFIG_DTLS_ECC
 
 # Uncomment to enable debug logs
-# CFLAGS += -DDTLS_DEBUG
+# CFLAGS += -DCONFIG_DTLS_DEBUG
 
 # FIXME: This is a temporary patch
 CFLAGS += -DTHREAD_STACKSIZE_MAIN=\(2*THREAD_STACKSIZE_LARGE\)

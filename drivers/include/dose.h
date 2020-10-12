@@ -124,9 +124,20 @@ typedef enum {
 #define DOSE_OPT_PROMISCUOUS     (BIT0)     /**< Don't check the destination MAC - pass every frame to upper layers */
 /** @} */
 
-#ifndef DOSE_TIMEOUT_USEC
-#define DOSE_TIMEOUT_USEC        (5000)     /**< Timeout that brings the driver back into idle state if the remote side died within a transaction */
+/**
+ * @defgroup drivers_dose_config    Differentially Operated Serial Ethernet (DOSE) driver compile configuration
+ * @ingroup config_drivers_netdev
+ * @{
+ */
+/**
+ * @brief Timeout that brings the driver back into idle state.
+ *
+ *  Fallback to idle if the remote side died within a transaction.
+ */
+#ifndef CONFIG_DOSE_TIMEOUT_USEC
+#define CONFIG_DOSE_TIMEOUT_USEC        (5000)
 #endif
+/** @} */
 
 #define DOSE_FRAME_CRC_LEN          (2)     /**< CRC16 is used */
 #define DOSE_FRAME_LEN (ETHERNET_FRAME_LEN + DOSE_FRAME_CRC_LEN) /**< dose frame length */
@@ -164,8 +175,10 @@ typedef struct {
  * @brief   Setup a DOSE based device state
  * @param[out]  dev         Handle of the device to initialize
  * @param[in]   params      Parameters for device initialization
+ * @param[in]   index       Index of @p params in a global parameter struct array.
+ *                          If initialized manually, pass a unique identifier instead.
  */
-void dose_setup(dose_t *dev, const dose_params_t *params);
+void dose_setup(dose_t *dev, const dose_params_t *params, uint8_t index);
 
 #ifdef __cplusplus
 }

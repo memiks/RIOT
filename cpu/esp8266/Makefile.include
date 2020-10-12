@@ -24,20 +24,10 @@ include $(RIOTCPU)/esp_common/Makefile.include
 
 # regular Makefile
 
-TARGET_ARCH ?= xtensa-esp8266-elf
+TARGET_ARCH_ESP8266 ?= xtensa-esp8266-elf
+TARGET_ARCH ?= $(TARGET_ARCH_ESP8266)
 
 PSEUDOMODULES += esp_sw_timer
-
-USEMODULE += esp_idf_esp8266
-USEMODULE += esp_idf_nvs_flash
-USEMODULE += esp_idf_spi_flash
-USEMODULE += esp_idf_util
-USEMODULE += esp_idf_wpa_supplicant_crypto
-USEMODULE += esp_sdk
-USEMODULE += mtd
-USEMODULE += newlib
-USEMODULE += periph_common
-USEMODULE += ps
 
 INCLUDES += -I$(RIOTCPU)/$(CPU)
 INCLUDES += -I$(RIOTCPU)/$(CPU)/include
@@ -61,15 +51,15 @@ CFLAGS += -D__ESP_FILE__=__FILE__
 
 ifneq (,$(filter esp_gdbstub,$(USEMODULE)))
   GDBSTUB_DIR ?= $(RIOTCPU)/$(CPU)/vendor/esp-gdbstub
-  CFLAGS      += -DGDBSTUB_BREAK_ON_INIT=1
-  INCLUDES    += -I$(GDBSTUB_DIR)
+  CFLAGS += -DGDBSTUB_BREAK_ON_INIT=1)
+  INCLUDES += -I$(GDBSTUB_DIR)
 endif
 
-BASELIBS += -lgcc -lwpa -lcore -lnet80211 -lphy -lpp -lstdc++
-
-ifneq (, $(filter esp_now, $(USEMODULE)))
-  BASELIBS += -lespnow
+ifneq (,$(filter esp_now,$(USEMODULE)))
+  ARCHIVES += -lespnow
 endif
+
+ARCHIVES += -lgcc -lwpa -lcore -lnet80211 -lphy -lpp -lstdc++
 
 LINKFLAGS += -T$(RIOTCPU)/$(CPU)/ld/esp8266.rom.ld
 LINKFLAGS += -T$(RIOTCPU)/$(CPU)/ld/esp8266.riot-os.ld

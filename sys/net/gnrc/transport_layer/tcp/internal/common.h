@@ -25,6 +25,7 @@
 #include "kernel_types.h"
 #include "thread.h"
 #include "mutex.h"
+#include "evtimer.h"
 #include "net/gnrc/netapi.h"
 #include "net/gnrc/tcp/tcb.h"
 
@@ -46,16 +47,14 @@ extern "C" {
 #define STATUS_PASSIVE        (1 << 0)
 #define STATUS_ALLOW_ANY_ADDR (1 << 1)
 #define STATUS_NOTIFY_USER    (1 << 2)
-#define STATUS_WAIT_FOR_MSG   (1 << 3)
 /** @} */
 
 /**
  * @brief Defines for "eventloop" thread settings.
  * @{
  */
-#define TCP_EVENTLOOP_MSG_QUEUE_SIZE (8U)
-#define TCP_EVENTLOOP_PRIO           (THREAD_PRIORITY_MAIN - 2U)
-#define TCP_EVENTLOOP_STACK_SIZE     (THREAD_STACKSIZE_DEFAULT)
+#define TCP_EVENTLOOP_PRIO       (THREAD_PRIORITY_MAIN - 2U)
+#define TCP_EVENTLOOP_STACK_SIZE (THREAD_STACKSIZE_DEFAULT)
 /** @} */
 
 /**
@@ -116,19 +115,19 @@ extern "C" {
 #define GET_OFFSET( x ) (((x) & MSK_OFFSET) >> 12)
 
 /**
- * @brief PID of GNRC TCP event handling thread
+ * @brief TCB list type.
  */
-extern kernel_pid_t gnrc_tcp_pid;
+typedef struct {
+    gnrc_tcp_tcb_t *head; /**< Head of TCB list */
+    mutex_t lock;         /**< Lock of TCB list */
+} tcb_list_t;
 
 /**
- * @brief Head of linked TCB list.
+ * @brief Function to access to TCB list
+ *
+ * @returns Pointer to global TCB list.
  */
-extern gnrc_tcp_tcb_t *_list_tcb_head;
-
-/**
- * @brief Mutex to protect TCB list.
- */
-extern mutex_t _list_tcb_lock;
+tcb_list_t *_gnrc_tcp_common_get_tcb_list(void);
 
 #ifdef __cplusplus
 }

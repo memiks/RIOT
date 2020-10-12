@@ -14,11 +14,14 @@ info-objsize:
 	  "") SORTROW=4 ;; \
 	  *) echo "Usage: $(MAKE) info-objsize SORTROW=[text|data|bss|dec]" ; return ;; \
 	esac; \
-	printf '   text\t   data\t    bss\t    dec\t    hex\tfilename\n'; \
-	$(SIZE) -d -B $(BASELIBS) | \
-	  tail -n+2 | \
-	  sed -e 's#$(BINDIR)##' | \
-	  sort -rnk$${SORTROW}
+	printf '   text\t   data\t    bss\t    dec\t    hex\tmodule\n'; \
+	for i in $(sort $(BASELIBS:%.module=%)); \
+	do \
+	$(SIZE) -t -d -B $(BINDIR)/$$i/*.o 2> /dev/null | \
+	  tail -n1 | \
+	  sed -e "s#(TOTALS)#$$i#" | \
+	  sed -e 's#$(BINDIR)##'; \
+	done | sort -n -r -k $${SORTROW}
 
 info-buildsize:
 	@$(SIZE) -d -B $(ELFFILE) || echo ''
@@ -34,10 +37,11 @@ info-build:
 	@echo 'CPU:     $(CPU)'
 	@echo 'MCU:     $(MCU)'
 	@echo ''
-	@echo 'RIOTBASE:  $(RIOTBASE)'
-	@echo 'BOARDSDIR: $(BOARDSDIR)'
-	@echo 'RIOTCPU:   $(RIOTCPU)'
-	@echo 'RIOTPKG:   $(RIOTPKG)'
+	@echo 'RIOTBASE:    $(RIOTBASE)'
+	@echo 'BOARDDIR:    $(BOARDDIR)'
+	@echo 'EXTERNAL_BOARD_DIRS:$(EXTERNAL_BOARD_DIRS)'
+	@echo 'RIOTCPU:     $(RIOTCPU)'
+	@echo 'RIOTPKG:     $(RIOTPKG)'
 	@echo ''
 	@echo 'DEFAULT_MODULE: $(sort $(filter-out $(DISABLE_MODULE), $(DEFAULT_MODULE)))'
 	@echo 'DISABLE_MODULE: $(sort $(DISABLE_MODULE))'
@@ -52,6 +56,8 @@ info-build:
 	@echo '         $(or $(FEATURES_USED), -none-)'
 	@echo 'FEATURES_REQUIRED:'
 	@echo '         $(or $(sort $(FEATURES_REQUIRED)), -none-)'
+	@echo 'FEATURES_REQUIRED_ANY:'
+	@echo '         $(or $(sort $(FEATURES_REQUIRED_ANY)), -none-)'
 	@echo 'FEATURES_OPTIONAL_ONLY (optional that are not required, strictly "nice to have"):'
 	@echo '         $(or $(FEATURES_OPTIONAL_ONLY), -none-)'
 	@echo 'FEATURES_OPTIONAL_MISSING (missing optional features):'

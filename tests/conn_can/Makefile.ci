@@ -7,10 +7,10 @@ BOARD_INSUFFICIENT_MEMORY := \
     arduino-uno \
     atmega328p \
     calliope-mini \
-    chronos \
     hifive1 \
     hifive1b \
     i-nucleo-lrwan1 \
+    im880b \
     microbit \
     msb-430 \
     msb-430h \
@@ -34,8 +34,6 @@ BOARD_INSUFFICIENT_MEMORY := \
     stm32l0538-disco \
     telosb \
     waspmote-pro \
-    wsn430-v1_3b \
-    wsn430-v1_4 \
     yunjia-nrf51822 \
     z1 \
     #

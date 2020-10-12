@@ -19,18 +19,12 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include "lpc2387.h"
+#include "lpc23xx.h"
+#include "mtd.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @name    xtimer tuning values
- * @{
- */
-#define XTIMER_OVERHEAD     7
-/** @} */
 
 /**
  * @name    LED pin definitions and handlers
@@ -93,6 +87,7 @@ extern "C" {
  */
 #define BTN0_PIN            GPIO_PIN(2, 10)
 #define BTN0_MODE           GPIO_IN
+#define BTN0_INT_FLANK      GPIO_FALLING
 /** @} */
 
 /**
@@ -108,6 +103,16 @@ extern "C" {
                                             GPIO_PIN(1,26), GPIO_PIN(1,27), \
                                             GPIO_UNDEF,     GPIO_UNDEF,     \
                                             GPIO_UNDEF,     GPIO_UNDEF      }
+/** @} */
+
+/**
+ * @name MTD configuration
+ * @{
+ */
+#ifdef MODULE_MTD_MCI
+extern mtd_dev_t *mtd0;
+#define MTD_0 mtd0
+#endif
 /** @} */
 
 #ifdef __cplusplus

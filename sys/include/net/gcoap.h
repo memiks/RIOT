@@ -37,6 +37,7 @@
  * - Client Operation
  * - Observe Server Operation
  * - Block Operation
+ * - Proxy Operation
  * - Implementation Notes
  * - Implementation Status
  *
@@ -305,6 +306,38 @@
  * - Finally, use coap_block1_finish() to finalize the block option with the
  *   proper value for the _more_ parameter.
  *
+ * ## Proxy Operation ##
+ *
+ * A [CoAP proxy](https://tools.ietf.org/html/rfc7252#section-5.7.1)
+ * forwards incoming requests to an origin server, or again to another
+ * proxy server.
+ *
+ * ### Proxy Client Handling
+ *
+ * The current implementation only allows the use of `Proxy-Uri` to
+ * specify the absolute URI for the origin server and resource. A
+ * request that includes a `Proxy-Uri` option must not contain any of
+ * the `Uri-*` options. An example:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.c}
+ * // endpoint for the proxy server
+ *  sock_udp_ep_t *proxy_remote = ...;
+ * // absolute URI for the origin server and resource
+ * char *uri = "coap://[2001:db8::1]:5683/.well-known/core";
+ *
+ * gcoap_req_init(&pdu, buf, CONFIG_GCOAP_PDU_BUF_SIZE, COAP_METHOD_GET, NULL);
+ * coap_opt_add_proxy_uri(&pdu, uri);
+ * unsigned len = coap_opt_finish(&pdu, COAP_OPT_FINISH_NONE);
+ *
+ * gcoap_req_send((uint8_t *) pdu->hdr, len, proxy_remote, _resp_handler, NULL);
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * See the gcoap example for a sample implementation.
+ *
+ * ### Proxy Server Handling
+ *
+ * Not implemented yet.
+ *
  * ## Implementation Notes ##
  *
  * ### Waiting for a response ###
@@ -379,45 +412,6 @@ extern "C" {
 #endif
 
 /**
- * @brief   Reduce payload length by this value for a request
- *
- * Accommodates writing Content-Format option in gcoap_finish(). May set to
- * zero if function not used.
- *
- * @deprecated  Will not be available after the 2020.07 release. Used only by
- * gcoap_finish(), which also is deprecated.
- */
-#ifndef CONFIG_GCOAP_REQ_OPTIONS_BUF
-#define CONFIG_GCOAP_REQ_OPTIONS_BUF   (4)
-#endif
-
-/**
- * @brief   Reduce payload length by this value for a response
- *
- * Accommodates writing Content-Format option in gcoap_finish(). May set to
- * zero if function not used.
- *
- * @deprecated  Will not be available after the 2020.07 release. Used only by
- * gcoap_finish(), which also is deprecated.
- */
-#ifndef CONFIG_GCOAP_RESP_OPTIONS_BUF
-#define CONFIG_GCOAP_RESP_OPTIONS_BUF  (4)
-#endif
-
-/**
- * @brief   Reduce payload length by this value for an observe notification
- *
- * Accommodates writing Content-Format option in gcoap_finish(). May set to
- * zero if function not used.
- *
- * @deprecated  Will not be available after the 2020.07 release. Used only by
- * gcoap_finish(), which also is deprecated.
- */
-#ifndef CONFIG_GCOAP_OBS_OPTIONS_BUF
-#define CONFIG_GCOAP_OBS_OPTIONS_BUF   (4)
-#endif
-
-/**
  * @brief   Maximum number of requests awaiting a response
  */
 #ifndef CONFIG_GCOAP_REQ_WAITING_MAX
@@ -484,7 +478,7 @@ extern "C" {
  * In normal operations the timeout between retransmissions doubles. When
  * CONFIG_GCOAP_NO_RETRANS_BACKOFF is defined this doubling does not happen.
  *
- * @see COAP_ACK_TIMEOUT
+ * @see CONFIG_COAP_ACK_TIMEOUT
  */
 #define CONFIG_GCOAP_NO_RETRANS_BACKOFF
 #endif
@@ -586,6 +580,7 @@ extern "C" {
 
 /**
  * @name Bitwise positional flags for encoding resource links
+ * @anchor COAP_LINK_FLAG_
  * @{
  */
 #define COAP_LINK_FLAG_INIT_RESLIST  (1)  /**< initialize as for first resource
@@ -598,8 +593,8 @@ extern "C" {
 typedef struct {
     unsigned content_format;            /**< link format */
     size_t link_pos;                    /**< position of link within listener */
-    uint16_t flags;                     /**< encoder switches; see GCOAP_LINK_FLAG_*
-                                             constants */
+    uint16_t flags;                     /**< encoder switches; see @ref
+                                             COAP_LINK_FLAG_ constants */
 } coap_link_encoder_ctx_t;
 
 /**
@@ -701,10 +696,14 @@ void gcoap_register_listener(gcoap_listener_t *listener);
 /**
  * @brief   Initializes a CoAP request PDU on a buffer.
  *
+ * If @p code is COAP_CODE_EMPTY, prepares a complete "CoAP ping" 4 byte empty
+ * message request, ready to send.
+ *
  * @param[out] pdu      Request metadata
  * @param[out] buf      Buffer containing the PDU
  * @param[in] len       Length of the buffer
- * @param[in] code      Request code, one of COAP_METHOD_XXX
+ * @param[in] code      Request code, one of COAP_METHOD_XXX or COAP_CODE_EMPTY
+ *                      to ping
  * @param[in] path      Resource path, may be NULL
  *
  * @pre @p path must start with `/` if not NULL
@@ -714,31 +713,6 @@ void gcoap_register_listener(gcoap_listener_t *listener);
  */
 int gcoap_req_init(coap_pkt_t *pdu, uint8_t *buf, size_t len,
                    unsigned code, const char *path);
-
-/**
- * @brief   Finishes formatting a CoAP PDU after the payload has been written
- *
- * Assumes the PDU has been initialized with a gcoap_xxx_init() function, like
- * gcoap_req_init().
- *
- * @deprecated  Will not be available after the 2020.07 release. Use
- * coap_opt_finish() instead.
- *
- * @warning To use this function, you only may have added an Option with
- * option number less than COAP_OPT_CONTENT_FORMAT. Otherwise, use the
- * struct-based API described with @link net_nanocoap nanocoap. @endlink With
- * this API, you specify the format with coap_opt_add_uint(), prepare for the
- * payload with coap_opt_finish(), and then write the payload.
- *
- * @param[in,out] pdu       Request metadata
- * @param[in] payload_len   Length of the payload, or 0 if none
- * @param[in] format        Format code for the payload; use COAP_FORMAT_NONE if
- *                          not specified
- *
- * @return  size of the PDU
- * @return  < 0 on error
- */
-ssize_t gcoap_finish(coap_pkt_t *pdu, size_t payload_len, unsigned format);
 
 /**
  * @brief   Writes a complete CoAP request PDU when there is not a payload
@@ -894,6 +868,9 @@ ssize_t gcoap_encode_link(const coap_resource_t *resource, char *buf,
  *
  * To add multiple Uri-Query options, simply call this function multiple times.
  * The Uri-Query options will be added in the order those calls.
+ *
+ * @deprecated  Will not be available after the 2020.10 release. Use
+ * coap_opt_add_uri_query() instead.
  *
  * @param[out] pdu      The package that is being build
  * @param[in]  key      Key to add to the query string

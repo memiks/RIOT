@@ -103,6 +103,7 @@ BaseType_t xTaskCreate (TaskFunction_t pvTaskCode,
 
 void vTaskDelete (TaskHandle_t xTaskToDelete)
 {
+    extern volatile thread_t *sched_active_thread;
     DEBUG("%s pid=%d task=%p\n", __func__, thread_getpid(), xTaskToDelete);
 
     assert(xTaskToDelete != NULL);
@@ -131,7 +132,7 @@ TaskHandle_t xTaskGetCurrentTaskHandle(void)
 void vTaskDelay( const TickType_t xTicksToDelay )
 {
     DEBUG("%s xTicksToDelay=%d\n", __func__, xTicksToDelay);
-#if defined(MCU_ESP8266) && defined(MODULE_ESP_WIFI_ANY)
+#if defined(MODULE_ESP_WIFI_ANY)
     uint64_t us = xTicksToDelay * MHZ / xPortGetTickRateHz();
     xtimer_usleep(us);
 #endif

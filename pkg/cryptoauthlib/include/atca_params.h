@@ -20,6 +20,7 @@
 #ifndef ATCA_PARAMS_H
 #define ATCA_PARAMS_H
 
+#include "board.h"
 #include "cryptoauthlib.h"
 
 #ifdef __cplusplus
@@ -27,6 +28,8 @@ extern "C" {
 #endif
 
 /**
+ * @defgroup drivers_atca_config    ATCA driver compile configuration
+ * @ingroup  config_drivers_misc
  * @brief    Set default configuration parameters for the ATCA device
  *
  *          The CryptoAuth library defines the data structure ATCAIfaceCfg for
@@ -37,7 +40,6 @@ extern "C" {
  *          We also initialize the baud rate with zero, because RIOT doesn't have
  *          an API to change baud.
  *
- * @ingroup  config
  * @{
  */
 

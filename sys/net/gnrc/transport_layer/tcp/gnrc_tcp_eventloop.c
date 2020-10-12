@@ -34,7 +34,42 @@
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
+#define TCP_EVENTLOOP_MSG_QUEUE_SIZE (1 << CONFIG_GNRC_TCP_EVENTLOOP_MSG_QUEUE_SIZE_EXP)
+
 static msg_t _eventloop_msg_queue[TCP_EVENTLOOP_MSG_QUEUE_SIZE];
+
+/**
+ * @brief Allocate memory for GNRC TCP thread stack.
+ */
+#if ENABLE_DEBUG
+static char _stack[TCP_EVENTLOOP_STACK_SIZE + THREAD_EXTRA_STACKSIZE_PRINTF];
+#else
+static char _stack[TCP_EVENTLOOP_STACK_SIZE];
+#endif
+
+/**
+ * @brief Central evtimer for gnrc_tcp event loop
+ */
+static evtimer_t _tcp_msg_timer;
+
+/**
+ * @brief TCPs eventloop pid
+ */
+static kernel_pid_t _tcp_eventloop_pid = KERNEL_PID_UNDEF;
+
+void _gnrc_tcp_event_loop_sched(evtimer_msg_event_t *event, uint32_t offset,
+                                uint16_t type, void *context)
+{
+    event->event.offset = offset;
+    event->msg.type = type;
+    event->msg.content.ptr = context;
+    evtimer_add_msg(&_tcp_msg_timer, event, _tcp_eventloop_pid);
+}
+
+void _gnrc_tcp_event_loop_unsched(evtimer_msg_event_t *event)
+{
+    evtimer_del(&_tcp_msg_timer, (evtimer_event_t *)event);
+}
 
 /**
  * @brief Send function, pass packet down the network stack.
@@ -174,13 +209,16 @@ static int _receive(gnrc_pktsnip_t *pkt)
     /* Validate checksum */
     if (byteorder_ntohs(hdr->checksum) != _pkt_calc_csum(tcp, ip, pkt)) {
         DEBUG("gnrc_tcp_eventloop.c : _receive() : Invalid checksum\n");
+#ifndef MODULE_FUZZING
         gnrc_pktbuf_release(pkt);
         return -EINVAL;
+#endif
     }
 
     /* Find TCB to for this packet */
-    mutex_lock(&_list_tcb_lock);
-    tcb = _list_tcb_head;
+    tcb_list_t *list = _gnrc_tcp_common_get_tcb_list();
+    mutex_lock(&list->lock);
+    tcb = list->head;
     while (tcb) {
 #ifdef MODULE_GNRC_IPV6
         /* Check if current TCB is fitting for the incoming packet */
@@ -213,9 +251,12 @@ static int _receive(gnrc_pktsnip_t *pkt)
 #endif
         tcb = tcb->next;
     }
-    mutex_unlock(&_list_tcb_lock);
+    mutex_unlock(&list->lock);
 
     /* Call FSM with event RCVD_PKT if a fitting TCB was found */
+    /* cppcheck-suppress knownConditionTrueFalse
+     * (reason: tcb can be NULL at runtime)
+     */
     if (tcb != NULL) {
         _fsm(tcb, FSM_EVENT_RCVD_PKT, pkt, NULL, 0);
     }
@@ -224,7 +265,7 @@ static int _receive(gnrc_pktsnip_t *pkt)
         DEBUG("gnrc_tcp_eventloop.c : _receive() : Can't find fitting tcb\n");
         if ((ctl & MSK_RST) != MSK_RST) {
             _pkt_build_reset_from_pkt(&reset, pkt);
-            if (gnrc_netapi_send(gnrc_tcp_pid, reset) < 1) {
+            if (gnrc_netapi_send(_tcp_eventloop_pid, reset) < 1) {
                 DEBUG("gnrc_tcp_eventloop.c : _receive() : unable to send reset packet\n");
                 gnrc_pktbuf_release(reset);
             }
@@ -236,13 +277,13 @@ static int _receive(gnrc_pktsnip_t *pkt)
     return 0;
 }
 
-void *_event_loop(__attribute__((unused)) void *arg)
+static void *_event_loop(__attribute__((unused)) void *arg)
 {
     msg_t msg;
     msg_t reply;
 
     /* Store pid */
-    gnrc_tcp_pid = thread_getpid();
+    _tcp_eventloop_pid = thread_getpid();
 
     /* Setup reply message */
     reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
@@ -253,7 +294,7 @@ void *_event_loop(__attribute__((unused)) void *arg)
 
     /* Register GNRC TCPs handling thread in netreg */
     gnrc_netreg_entry_t entry;
-    gnrc_netreg_entry_init_pid(&entry, GNRC_NETREG_DEMUX_CTX_ALL, gnrc_tcp_pid);
+    gnrc_netreg_entry_init_pid(&entry, GNRC_NETREG_DEMUX_CTX_ALL, _tcp_eventloop_pid);
     gnrc_netreg_register(GNRC_NETTYPE_TCP, &entry);
 
     /* dispatch NETAPI messages */
@@ -298,4 +339,19 @@ void *_event_loop(__attribute__((unused)) void *arg)
     }
     /* Never reached */
     return NULL;
+}
+
+int _gnrc_tcp_event_loop_init(void)
+{
+    /* Guard: Check if thread is already running */
+    if (_tcp_eventloop_pid != KERNEL_PID_UNDEF) {
+        return -EEXIST;
+    }
+
+    /* Initialize timers */
+    evtimer_init_msg(&_tcp_msg_timer);
+
+    return thread_create(_stack, sizeof(_stack), TCP_EVENTLOOP_PRIO,
+                         THREAD_CREATE_STACKTEST, _event_loop, NULL,
+                         "gnrc_tcp");
 }
