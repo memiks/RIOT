@@ -37,9 +37,16 @@ static const  saul_gpio_params_t saul_gpio_params[] =
 //        .flags = (SAUL_GPIO_INVERTED | SAUL_GPIO_INIT_CLEAR)
     },
     {
-        .name = "LED1 (Infra Red)",
-        .pin = LED1_PIN,
+        .name = "LEDIROUT (Infra Red Emitter)",
+        .pin = LEDIROUT_PIN,
         .mode = GPIO_OUT,
+        .flags = SAUL_GPIO_INIT_CLEAR
+//        .flags = (SAUL_GPIO_INVERTED | SAUL_GPIO_INIT_CLEAR)
+    },
+    {
+        .name = "LEDIRIN (Infra Red Receiver)",
+        .pin = LEDIRIN_PIN,
+        .mode = GPIO_IN,
         .flags = SAUL_GPIO_INIT_CLEAR
 //        .flags = (SAUL_GPIO_INVERTED | SAUL_GPIO_INIT_CLEAR)
     }
