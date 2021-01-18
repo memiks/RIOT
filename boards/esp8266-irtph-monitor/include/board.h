@@ -31,6 +31,9 @@
 #define LED0_PIN    GPIO14   /**< GPIO13 is used as LED Pin */
 #define LED0_ACTIVE (1)     /**< LED is high active */
 
+#define LED1_PIN    GPIO14   /**< GPIO14 is used as LED Pin */
+#define LED1_ACTIVE (1)     /**< LED is high active */
+
 #define LEDIROUT_PIN    GPIO4   /**< GPIO13 is used as LED Pin */
 #define LEDIROUT_ACTIVE (1)     /**< LED is high active */
 
