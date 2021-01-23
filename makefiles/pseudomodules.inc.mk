@@ -82,6 +82,7 @@ PSEUDOMODULES += lora
 PSEUDOMODULES += lvgl
 PSEUDOMODULES += mpu_stack_guard
 PSEUDOMODULES += mpu_noexec_ram
+PSEUDOMODULES += mtd_write_page
 PSEUDOMODULES += nanocoap_%
 PSEUDOMODULES += netdev_default
 PSEUDOMODULES += netdev_ieee802154_%
