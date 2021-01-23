@@ -138,6 +138,44 @@ int mtd_write(mtd_dev_t *mtd, const void *src, uint32_t addr, uint32_t count)
 }
 #endif
 
+#ifdef MODULE_MTD_WRITE_PAGE
+int mtd_write_page(mtd_dev_t *mtd, const void *data, uint32_t page,
+                   uint32_t offset, uint32_t len)
+{
+    if (!mtd || !mtd->driver) {
+        return -ENODEV;
+    }
+
+    if (mtd->work_area == NULL) {
+        return mtd_write_page_raw(mtd, data, page, offset, len);
+    }
+
+    int res;
+    uint8_t *work = mtd->work_area;
+    const uint32_t sector = page / mtd->pages_per_sector;
+    const uint32_t sector_page = sector * mtd->pages_per_sector;
+    const uint32_t sector_size = mtd->pages_per_sector * mtd->page_size;
+
+    /* copy sector to RAM */
+    res = mtd_read_page(mtd, work, sector_page, 0, sector_size);
+    if (res < 0) {
+        return res;
+    }
+
+    /* erase sector */
+    res = mtd_erase_sector(mtd, sector, 1);
+    if (res < 0) {
+        return res;
+    }
+
+    /* modify sector in RAM */
+    memcpy(work + (page - sector_page) * mtd->page_size + offset, data, len);
+
+    /* write back modified sector copy */
+    return mtd_write_page_raw(mtd, work, sector_page, 0, sector_size);
+}
+#endif
+
 int mtd_write_page_raw(mtd_dev_t *mtd, const void *src, uint32_t page, uint32_t offset,
                        uint32_t count)
 {
