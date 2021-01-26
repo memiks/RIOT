@@ -320,36 +320,6 @@ int mtd_write_page_raw(mtd_dev_t *mtd, const void *src, uint32_t page,
                        uint32_t offset, uint32_t size);
 
 /**
- * @brief   Write data to a MTD device with pagewise addressing
- *
- * The MTD layer will take care of splitting up the transaction into multiple
- * writes if it is required by the underlying storage media.
- *
- * If the underlying sector needs to be erased before it can be written, the MTD
- * layer will take care of the read-modify-write operation.
- *
- * @p offset must be smaller than the page size
- *
- * @note this requires the `mtd_write_page` module
- *
- * @param      mtd      the device to write to
- * @param[in]  src      the buffer to write
- * @param[in]  page     Page number to start writing to
- * @param[in]  offset   byte offset from the start of the page
- * @param[in]  size     the number of bytes to write
- *
- * @return 0 on success
- * @return < 0 if an error occurred
- * @return -ENODEV if @p mtd is not a valid device
- * @return -ENOTSUP if operation is not supported on @p mtd
- * @return -EOVERFLOW if @p addr or @p count are not valid, i.e. outside memory,
- * @return -EIO if I/O error occurred
- * @return -EINVAL if parameters are invalid
- */
-int mtd_write_page(mtd_dev_t *mtd, const void *src, uint32_t page,
-                   uint32_t offset, uint32_t size);
-
-/**
  * @brief   Erase sectors of a MTD device
  *
  * @p addr must be aligned on a sector boundary. @p count must be a multiple of a sector size.

@@ -210,7 +210,7 @@ static int cmd_write_page(int argc, char **argv)
     offset = atoi(argv[3]);
     len    = strlen(argv[4]);
 
-    int res = mtd_write_page(dev, argv[4], page, offset, len);
+    int res = mtd_write_page_raw(dev, argv[4], page, offset, len);
 
     if (res) {
         printf("error: %i\n", res);
