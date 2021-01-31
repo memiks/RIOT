@@ -1,8 +1,8 @@
-ifneq (,$(filter picolibc,$(FEATURES_USED)))
-  USEMODULE += picolibc
-else
+
+FEATURES_REQUIRED_ANY += picolibc|newlib
+ifneq (,$(filter newlib,$(USEMODULE)))
   USEMODULE += newlib_nano
-  USEMODULE += newlib_syscalls_fe310
+  USEMODULE += newlib_syscalls_default
 endif
 
 USEMODULE += sifive_drivers_fe310

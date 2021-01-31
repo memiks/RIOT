@@ -80,16 +80,12 @@ extern "C" {
 
 /**
  * @name PineTime NOR flash hardware configuration
- * @{
  */
-#define PINETIME_NOR_PAGE_SIZE          (256)
-#define PINETIME_NOR_PAGES_PER_SECTOR   (16)
-#define PINETIME_NOR_SECTOR_COUNT       (2048)
-#define PINETIME_NOR_FLAGS              (SPI_NOR_F_SECT_4K | SPI_NOR_F_SECT_32K)
-#define PINETIME_NOR_SPI_DEV            SPI_DEV(0)
-#define PINETIME_NOR_SPI_CLK            SPI_CLK_10MHZ
-#define PINETIME_NOR_SPI_CS             GPIO_PIN(0, 5)
-#define PINETIME_NOR_SPI_MODE           SPI_MODE_3
+/** @{ */
+#define PINETIME_NOR_SPI_DEV               SPI_DEV(0)
+#define PINETIME_NOR_SPI_CLK               SPI_CLK_10MHZ
+#define PINETIME_NOR_SPI_CS                GPIO_PIN(0, 5)
+#define PINETIME_NOR_SPI_MODE              SPI_MODE_3
 /** @} */
 
 /**
@@ -98,6 +94,29 @@ extern "C" {
 /** @{ */
 extern mtd_dev_t *mtd0;
 #define MTD_0 mtd0
+/** @} */
+
+#ifdef __cplusplus
+}
+#endif
+
+/**
+ * @name MTD configuration
+ */
+/** @{ */
+extern mtd_dev_t *mtd0;
+#define MTD_0 mtd0
+/** @} */
+
+/**
+ * @name Touch screen configuration
+ * @{
+ */
+#define CST816S_PARAM_I2C_DEV        I2C_DEV(0)
+#define CST816S_PARAM_I2C_ADDR       (0x15)
+#define CST816S_PARAM_IRQ            GPIO_PIN(0, 28)
+#define CST816S_PARAM_IRQ_FLANK      GPIO_FALLING
+#define CST816S_PARAM_RESET          GPIO_PIN(0, 10)
 /** @} */
 
 #ifdef __cplusplus

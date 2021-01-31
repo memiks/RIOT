@@ -5,7 +5,6 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
-
 #ifndef CST816S_INTERNAL_H
 #define CST816S_INTERNAL_H
 
