@@ -1,0 +1,20 @@
+
+FEATURES_REQUIRED_ANY += picolibc|newlib
+ifneq (,$(filter newlib,$(USEMODULE)))
+  USEMODULE += newlib_nano
+  USEMODULE += newlib_syscalls_default
+endif
+
+USEMODULE += sifive_drivers_bl602
+
+USEMODULE += periph
+USEMODULE += periph_pm
+
+FEATURES_REQUIRED += periph_plic
+
+ifneq (,$(filter periph_rtc,$(USEMODULE)))
+  FEATURES_REQUIRED += periph_rtt
+endif
+
+# Make calls to malloc and friends thread-safe
+USEMODULE += malloc_thread_safe

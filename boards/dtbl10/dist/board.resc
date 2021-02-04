@@ -1,0 +1,23 @@
+:name: SiFive-BL602
+:description: This script runs the Sifive Hifive1 on RIOT.
+
+$name?="SiFive-BL602"
+
+using sysbus
+mach create $name
+machine LoadPlatformDescription @platforms/cpus/sifive-bl602.repl
+
+showAnalyzer uart0
+
+cpu PerformanceInMips 320
+
+sysbus Tag <0x10008000 4> "PRCI_HFROSCCFG" 0xFFFFFFFF
+sysbus Tag <0x10008004 4> "PRCI_HFXOSCCFG" 0xFFFFFFFF
+sysbus Tag <0x10008008 4> "PRCI_PLLCFG" 0xFFFFFFFF
+
+macro reset
+"""
+    sysbus LoadELF $image_file
+"""
+
+runMacro $reset

@@ -1,0 +1,6 @@
+CFLAGS += -Wno-pedantic
+
+LINKER_SCRIPT ?= flash_rom.ld
+
+
+include $(RIOTMAKE)/arch/riscv.inc.mk
