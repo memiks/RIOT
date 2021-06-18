@@ -58,7 +58,7 @@ def list_cpu_lines(cpu_fam):
         headers.remove("partition_stm32l5xx.h")
     headers.remove("stm32{}xx.h".format(cpu_fam))
     headers.remove("system_stm32{}xx.h".format(cpu_fam))
-    return [header.split(".")[0] for header in headers]
+    return sorted([header.split(".")[0] for header in headers])
 
 
 def irq_numof(cpu_fam, cpu_line):
@@ -86,7 +86,8 @@ def irq_numof(cpu_fam, cpu_line):
         ):
             continue
         # Stop at the end of the IRQn_Type enum definition
-        if "IRQn_Type" in line:
+        if "IRQn_Type" in line \
+                and "#else" not in cmsis_content[line_idx + 1].decode():
             break
 
     # Ensure we are on a valid line, otherwise search in earlier lines

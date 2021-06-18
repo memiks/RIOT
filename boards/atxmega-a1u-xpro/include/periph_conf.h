@@ -36,6 +36,7 @@ extern "C" {
 static const timer_conf_t timer_config[] = {
     {
         .dev            = (void *)&TCC1,
+        .pwr            = PWR_RED_REG(PWR_PORT_C, PR_TC1_bm),
         .type           = TC_TYPE_1,
         .int_lvl        = { CPU_INT_LVL_LOW,
                             CPU_INT_LVL_OFF,
@@ -44,6 +45,7 @@ static const timer_conf_t timer_config[] = {
     },
     {
         .dev            = (void *)&TCC0,
+        .pwr            = PWR_RED_REG(PWR_PORT_C, PR_TC0_bm),
         .type           = TC_TYPE_0,
         .int_lvl        = { CPU_INT_LVL_LOW,
                             CPU_INT_LVL_LOW,
@@ -69,6 +71,7 @@ static const timer_conf_t timer_config[] = {
 static const uart_conf_t uart_config[] = {
     {   /* CDC-ACM */
         .dev            = &USARTE0,
+        .pwr            = PWR_RED_REG(PWR_PORT_E, PR_USART0_bm),
         .rx_pin         = GPIO_PIN(PORT_E, 2),
         .tx_pin         = GPIO_PIN(PORT_E, 3),
 #ifdef MODULE_PERIPH_UART_HW_FC
@@ -87,6 +90,44 @@ static const uart_conf_t uart_config[] = {
 #define UART_0_TXC_ISR    USARTE0_TXC_vect    /* Transmission Complete Interrupt */
 
 #define UART_NUMOF        ARRAY_SIZE(uart_config)
+/** @} */
+
+/**
+ * @name I2C configuration
+ * @{
+ */
+static const i2c_conf_t i2c_config[] = {
+    {
+        .dev                = &TWIC,
+        .pwr                = PWR_RED_REG(PWR_PORT_C, PR_TWI_bm),
+        .sda_pin            = GPIO_PIN(PORT_C, 0),
+        .scl_pin            = GPIO_PIN(PORT_C, 1),
+        .speed              = I2C_SPEED_NORMAL,
+        .int_lvl            = CPU_INT_LVL_LOW,
+    },
+};
+
+#define I2C_0_ISR           TWIC_TWIM_vect
+
+#define I2C_NUMOF           ARRAY_SIZE(i2c_config)
+/** @} */
+
+/**
+ * @name    SPI configuration
+ * @{
+ */
+static const spi_conf_t spi_config[] = {
+    {
+        .dev            = &SPIC,
+        .pwr            = PWR_RED_REG(PWR_PORT_C, PR_SPI_bm),
+        .sck_pin        = GPIO_PIN(PORT_C, 7),
+        .miso_pin       = GPIO_PIN(PORT_C, 6),
+        .mosi_pin       = GPIO_PIN(PORT_C, 5),
+        .ss_pin         = GPIO_PIN(PORT_C, 4),
+    },
+};
+
+#define SPI_NUMOF         ARRAY_SIZE(spi_config)
 /** @} */
 
 #ifdef __cplusplus

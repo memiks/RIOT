@@ -69,6 +69,29 @@ enum {
 };
 
 /**
+ * @brief   Power Reduction Peripheral Mask
+ */
+typedef uint16_t pwr_reduction_t;
+
+/**
+ * @brief   Define a CPU specific Power Reduction index macro
+ */
+#define PWR_RED_REG(reg, dev) ((reg << 8) | dev)
+
+/**
+ * @brief   Define a CPU specific Power Reduction index macro
+ */
+enum {
+    PWR_GENERAL_POWER,
+    PWR_PORT_A,
+    PWR_PORT_B,
+    PWR_PORT_C,
+    PWR_PORT_D,
+    PWR_PORT_E,
+    PWR_PORT_F,
+};
+
+/**
  * @name    Power management configuration
  * @{
  */
@@ -190,6 +213,7 @@ typedef enum {
  */
 typedef struct {
     USART_t *dev;                   /**< pointer to the used UART device */
+    pwr_reduction_t pwr;            /**< Power Management */
     gpio_t rx_pin;                  /**< pin used for RX */
     gpio_t tx_pin;                  /**< pin used for TX */
 #ifdef MODULE_PERIPH_UART_HW_FC
@@ -235,9 +259,100 @@ typedef enum {
  */
 typedef struct {
     TC0_t *dev;                                 /**< Pointer to the used as Timer device */
+    pwr_reduction_t pwr;                        /**< Power Management */
     timer_type_t type;                          /**< Timer Type */
     cpu_int_lvl_t int_lvl[TIMER_CH_MAX_NUMOF];  /**< Interrupt channels level */
 } timer_conf_t;
+
+/**
+ * @name    Override I2C clock speed values
+ * @{
+ */
+#define HAVE_I2C_SPEED_T
+typedef enum {
+    I2C_SPEED_LOW       =   10000ul, /**< low speed mode:     ~10 kbit/s */
+    I2C_SPEED_NORMAL    =  100000ul, /**< normal mode:       ~100 kbit/s */
+    I2C_SPEED_FAST      =  400000ul, /**< fast mode:         ~400 kbit/s */
+    I2C_SPEED_FAST_PLUS = 1000000ul, /**< fast plus mode:   ~1000 kbit/s */
+    /* High speed is not supported without external hardware hacks */
+    I2C_SPEED_HIGH      = 3400000ul, /**< high speed mode:  ~3400 kbit/s */
+} i2c_speed_t;
+/** @} */
+
+/**
+ * @name   Use shared I2C functions
+ * @{
+ */
+#define PERIPH_I2C_NEED_READ_REG
+#define PERIPH_I2C_NEED_READ_REGS
+#define PERIPH_I2C_NEED_WRITE_REG
+#define PERIPH_I2C_NEED_WRITE_REGS
+/** @} */
+
+/**
+ * @brief   I2C configuration structure
+ */
+typedef struct {
+    TWI_t *dev;             /**< Pointer to hardware module registers */
+    pwr_reduction_t pwr;    /**< Power Management */
+    gpio_t sda_pin;         /**< SDA GPIO pin */
+    gpio_t scl_pin;         /**< SCL GPIO pin */
+    i2c_speed_t speed;      /**< Configured bus speed, actual speed may be lower but never higher */
+    cpu_int_lvl_t int_lvl;  /**< Serial Interrupt Level */
+} i2c_conf_t;
+
+/**
+ * @brief   Enable common SPI functions
+ * @{
+ */
+#define PERIPH_SPI_NEEDS_INIT_CS
+#define PERIPH_SPI_NEEDS_TRANSFER_BYTE
+#define PERIPH_SPI_NEEDS_TRANSFER_REG
+#define PERIPH_SPI_NEEDS_TRANSFER_REGS
+/** @} */
+
+/**
+ * @brief   Define global value for undefined SPI device
+ * @{
+ */
+#define SPI_UNDEF               (UCHAR_MAX)
+/** @} */
+
+/**
+ * @brief Define spi_t data type to save data
+ * @{
+ */
+#define HAVE_SPI_T
+typedef uint8_t spi_t;
+/** @} */
+
+/**
+ * @brief  SPI device configuration
+ * @{
+ */
+typedef struct {
+    SPI_t *dev;                     /**< pointer to the used SPI device */
+    pwr_reduction_t pwr;            /**< Power Management */
+    gpio_t sck_pin;                 /**< pin used for SCK */
+    gpio_t miso_pin;                /**< pin used for MISO */
+    gpio_t mosi_pin;                /**< pin used for MOSI */
+    gpio_t ss_pin;                  /**< pin used for SS line */
+} spi_conf_t;
+/** @} */
+
+/**
+ * @brief  Available SPI clock speeds
+ * @{
+ */
+#define HAVE_SPI_CLK_T
+typedef enum {
+    SPI_CLK_100KHZ = 100000U,       /**< drive the SPI bus with 100KHz */
+    SPI_CLK_400KHZ = 400000U,       /**< drive the SPI bus with 400KHz */
+    SPI_CLK_1MHZ   = 1000000U,      /**< drive the SPI bus with 1MHz */
+    SPI_CLK_5MHZ   = 5000000U,      /**< drive the SPI bus with 5MHz */
+    SPI_CLK_10MHZ  = 10000000U,     /**< drive the SPI bus with 10MHz */
+} spi_clk_t;
+/** @} */
 
 #ifdef __cplusplus
 }

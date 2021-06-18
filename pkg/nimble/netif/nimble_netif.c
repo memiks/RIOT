@@ -51,15 +51,6 @@
 #define NETTYPE                 GNRC_NETTYPE_UNDEF
 #endif
 
-/* buffer configuration
- * - we need one RX and one TX buffer per connection */
-#define MTU_SIZE                (NIMBLE_NETIF_MTU)
-#define MBUF_OVHD               (sizeof(struct os_mbuf) + \
-                                 sizeof(struct os_mbuf_pkthdr))
-#define MBUF_SIZE               (MBUF_OVHD + MYNEWT_VAL_BLE_L2CAP_COC_MPS)
-#define MBUF_CNT                (NIMBLE_NETIF_MAX_CONN * 2 * \
-                                 ((MTU_SIZE + (MBUF_SIZE - 1)) / MBUF_SIZE))
-
 /* thread flag used for signaling transmit readiness */
 #define FLAG_TX_UNSTALLED       (1u << 13)
 #define FLAG_TX_NOTCONN         (1u << 12)
@@ -75,11 +66,6 @@ static gnrc_nettype_t _nettype = NETTYPE;
 
 /* keep a reference to the event callback */
 static nimble_netif_eventcb_t _eventcb;
-
-/* allocation of memory for buffering IP packets when handing them to NimBLE */
-static os_membuf_t _mem[OS_MEMPOOL_SIZE(MBUF_CNT, MBUF_SIZE)];
-static struct os_mempool _mem_pool;
-static struct os_mbuf_pool _mbuf_pool;
 
 /* notify the user about state changes for a connection context */
 static void _notify(int handle, nimble_netif_event_t event, uint8_t *addr)
@@ -114,7 +100,7 @@ static int _send_pkt(nimble_netif_conn_t *conn, gnrc_pktsnip_t *pkt)
     }
 
     /* copy the data into a newly allocated mbuf */
-    struct os_mbuf *sdu = os_mbuf_get_pkthdr(&_mbuf_pool, 0);
+    struct os_mbuf *sdu = os_msys_get_pkthdr(gnrc_pkt_len(pkt), 0);
     if (sdu == NULL) {
         return -ENOBUFS;
     }
@@ -229,7 +215,7 @@ static inline int _netdev_get(netdev_t *dev, netopt_t opt,
             break;
         case NETOPT_MAX_PDU_SIZE:
             assert(max_len >= sizeof(uint16_t));
-            *((uint16_t *)value) = MTU_SIZE;
+            *((uint16_t *)value) = NIMBLE_NETIF_MTU;
             res = sizeof(uint16_t);
             break;
         case NETOPT_PROTO:
@@ -320,7 +306,7 @@ static void _on_data(nimble_netif_conn_t *conn, struct ble_l2cap_event *event)
 end:
     /* free the mbuf and allocate a new one for receiving new data */
     os_mbuf_free_chain(rxb);
-    rxb = os_mbuf_get_pkthdr(&_mbuf_pool, 0);
+    rxb = os_msys_get_pkthdr(MYNEWT_VAL_BLE_L2CAP_COC_MPS, 0);
     /* due to buffer provisioning, there should always be enough space */
     assert(rxb != NULL);
     ble_l2cap_recv_ready(event->receive.chan, rxb);
@@ -395,7 +381,8 @@ static int _on_l2cap_server_evt(struct ble_l2cap_event *event, void *arg)
             conn->state &= ~NIMBLE_NETIF_L2CAP_CONNECTED;
             break;
         case BLE_L2CAP_EVENT_COC_ACCEPT: {
-            struct os_mbuf *sdu_rx = os_mbuf_get_pkthdr(&_mbuf_pool, 0);
+            struct os_mbuf *sdu_rx = os_msys_get_pkthdr(
+                                            MYNEWT_VAL_BLE_L2CAP_COC_MPS, 0);
             /* there should always be enough buffer space */
             assert(sdu_rx != NULL);
             ble_l2cap_recv_ready(event->accept.chan, sdu_rx);
@@ -445,13 +432,18 @@ static int _on_gap_master_evt(struct ble_gap_event *event, void *arg)
             _on_gap_connected(conn, event->connect.conn_handle);
             conn->state |= NIMBLE_NETIF_GAP_MASTER;
 
-            struct os_mbuf *sdu_rx = os_mbuf_get_pkthdr(&_mbuf_pool, 0);
-            /* we should never run out of buffer space... */
-            assert(sdu_rx != NULL);
+            struct os_mbuf *sdu_rx = os_msys_get_pkthdr(
+                                            MYNEWT_VAL_BLE_L2CAP_COC_MPS, 0);
+            /* in the rare case that we run out of buffers, we close the new
+             * connection right away */
+            if (sdu_rx == NULL) {
+                ble_gap_terminate(handle, BLE_ERR_REM_USER_CONN_TERM);
+                break;
+            }
             res = ble_l2cap_connect(event->connect.conn_handle,
-                                    NIMBLE_NETIF_CID, MTU_SIZE, sdu_rx,
+                                    NIMBLE_NETIF_CID, NIMBLE_NETIF_MTU, sdu_rx,
                                     _on_l2cap_client_evt, (void *)handle);
-            /* should always success as well */
+            /* should always be successful */
             assert(res == 0);
             break;
         }
@@ -493,6 +485,11 @@ static int _on_gap_slave_evt(struct ble_gap_event *event, void *arg)
                 _notify(handle, NIMBLE_NETIF_ABORT_SLAVE, addr);
                 break;
             }
+            if ((NIMBLE_NETIF_CONN_ITVL_SPACING > 0) &&
+                nimble_netif_conn_itvl_invalid(handle)) {
+                nimble_netif_close(handle);
+                break;
+            }
             _on_gap_connected(conn, event->connect.conn_handle);
             assert(conn->state == NIMBLE_NETIF_ADV);
             conn->state = NIMBLE_NETIF_GAP_SLAVE;
@@ -530,12 +527,7 @@ void nimble_netif_init(void)
     /* setup the connection context table */
     nimble_netif_conn_init();
 
-    /* initialize of BLE related buffers */
-    res = mem_init_mbuf_pool(_mem, &_mem_pool, &_mbuf_pool,
-                             MBUF_CNT, MBUF_SIZE, "nim_gnrc");
-    assert(res == 0);
-
-    res = ble_l2cap_create_server(NIMBLE_NETIF_CID, MTU_SIZE,
+    res = ble_l2cap_create_server(NIMBLE_NETIF_CID, NIMBLE_NETIF_MTU,
                                   _on_l2cap_server_evt, NULL);
     assert(res == 0);
     (void)res;
@@ -550,11 +542,14 @@ void nimble_netif_eventcb(nimble_netif_eventcb_t cb)
 }
 
 int nimble_netif_connect(const ble_addr_t *addr,
-                         const struct ble_gap_conn_params *conn_params,
+                         struct ble_gap_conn_params *conn_params,
                          uint32_t timeout)
 {
     assert(addr);
     assert(_eventcb);
+
+    uint16_t itvl_min = 0;
+    uint16_t itvl_max = 0;
 
     /* the netif_conn module expects addresses in network byte order */
     uint8_t addrn[BLE_ADDR_LEN];
@@ -572,10 +567,30 @@ int nimble_netif_connect(const ble_addr_t *addr,
         return NIMBLE_NETIF_NOMEM;
     }
 
+    if ((conn_params != NULL)
+        && (conn_params->itvl_min != conn_params->itvl_max)) {
+        /* we need to save the min/max intervals in order to restore them
+         * later on */
+        itvl_min = conn_params->itvl_min;
+        itvl_max = conn_params->itvl_max;
+
+        uint16_t itvl = nimble_netif_conn_gen_itvl(itvl_min, itvl_max);
+        if (itvl == 0) {
+            return NIMBLE_NETIF_NOTFOUND;
+        }
+        conn_params->itvl_min = itvl;
+        conn_params->itvl_max = itvl;
+    }
+
     int res = ble_gap_connect(nimble_riot_own_addr_type, addr, timeout,
                               conn_params, _on_gap_master_evt, (void *)handle);
     assert(res == 0);
     (void)res;
+
+    if (itvl_min != itvl_max) {
+        conn_params->itvl_min = itvl_min;
+        conn_params->itvl_max = itvl_max;
+    }
 
     _notify(handle, NIMBLE_NETIF_INIT_MASTER, addrn);
 

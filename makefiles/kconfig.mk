@@ -143,8 +143,8 @@ $(KCONFIG_GENERATED_DEPENDENCIES): FORCE | $(GENERATED_DIR)
 	      printf "config %s\n\tbool\n\tdefault y\n", toupper($$0)}' \
 	  | $(LAZYSPONGE) $(LAZYSPONGE_FLAGS) $@
 
-# All directories in EXTERNAL_MODULES_DIR which have a Kconfig file
-EXTERNAL_MODULE_KCONFIGS ?= $(sort $(foreach dir,$(EXTERNAL_MODULE_DIRS),\
+# All directories in EXTERNAL_MODULES_PATHS which have a Kconfig file
+EXTERNAL_MODULE_KCONFIGS ?= $(sort $(foreach dir,$(EXTERNAL_MODULE_PATHS),\
                               $(wildcard $(dir)/Kconfig)))
 # Build a Kconfig file that source all external modules configuration
 # files. Every EXTERNAL_MODULE_DIRS with a Kconfig file is written to
@@ -176,7 +176,7 @@ GENERATED_DIR_DEP := $(if $(CLEAN),,|) $(GENERATED_DIR)
 # Generates a .config file by merging multiple sources specified in
 # MERGE_SOURCES. This will also generate KCONFIG_OUT_DEP with the list of used
 # Kconfig files.
-$(KCONFIG_OUT_CONFIG): $(KCONFIG_EXTERNAL_CONFIGS)
+$(KCONFIG_OUT_CONFIG): $(KCONFIG_EXTERNAL_CONFIGS) | pkg-prepare
 $(KCONFIG_OUT_CONFIG): $(GENERATED_DEPENDENCIES_DEP) $(GENCONFIG) $(MERGE_SOURCES) $(GENERATED_DIR_DEP)
 	$(Q) $(GENCONFIG) \
 	  --config-out=$(KCONFIG_OUT_CONFIG) \

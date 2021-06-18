@@ -178,8 +178,6 @@ typedef enum {
     UART_FLAG_NONE            = 0x0,    /**< No flags set */
     UART_FLAG_RUN_STANDBY     = 0x1,    /**< run SERCOM in standby mode */
     UART_FLAG_WAKEUP          = 0x2,    /**< wake from sleep on receive */
-    UART_FLAG_RXINV           = 0x4,    /**< invert RX signal */
-    UART_FLAG_TXINV           = 0x8,    /**< invert TX signal */
 } uart_flag_t;
 
 #ifndef DOXYGEN
@@ -1144,6 +1142,27 @@ int rtc_tamper_register(gpio_t pin, gpio_flank_t flank);
  * @brief   Enable Tamper Detection IRQs
  */
 void rtc_tamper_enable(void);
+
+/**
+ * @brief   Get and clear the RTC tamper event that has woken the CPU
+ *          from Deep Sleep.
+ *
+ * @return  The set bits in the return value correspond to the tamper
+ *          pin index inside the @ref rtc_tamper_pins array.
+ */
+uint8_t rtc_get_tamper_event(void);
+
+/**
+ * @brief   Get the tamper event mask for a certain pin.
+ *          Can be used together with @ref rtc_get_tamper_event to
+ *          check which RTC  pin caused the tamper event.
+ *
+ * @param pin   Pin to query
+ *
+ * @return  Bit mask with the bit corresponding to @p pin set
+ *          0 if @p pin is no RTC tamper pin
+ */
+uint8_t rtc_tamper_pin_mask(gpio_t pin);
 /** @} */
 
 /**
